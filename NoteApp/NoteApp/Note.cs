@@ -1,165 +1,157 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using DateTime = System.DateTime;
+﻿using Newtonsoft.Json;
+using System;
+using System.Data;
+using System.Dynamic;
+using System.Runtime.CompilerServices;
 
 namespace NoteApp
 {
     /// <summary>
-    /// Класс, представляющий заметку
+    /// класс заметка
     /// </summary>
     public class Note : ICloneable
     {
-        /// <summary>
-        /// Хранит имя
-        /// </summary>
-        private string _name;
 
         /// <summary>
-        /// Хранит содержание или текст
+        /// название заметки
         /// </summary>
-        private string _content;
+        private string _title;
+        /// <summary>
+        /// текст заметки
+        /// </summary>
+        private string _text;
+        /// <summary>
+        /// время создания заметки
+        /// </summary>
+        private DateTime _timeCreated;
+        /// <summary>
+        /// категория заметки
+        /// </summary>
+        private NoteCategory _noteCategory;
+        /// <summary>
+        /// время последнего изменения
+        /// </summary>
+        private DateTime _lastModification;
 
         /// <summary>
-        /// Хранит категорию
+        /// Создание заметки (с указанием времени создания)
         /// </summary>
-        private NoteCategory _category;
-
-        /// <summary>
-        /// Хранит дату и время создания
-        /// </summary>
-        private DateTime _dateOfCreation;
-
-        /// <summary>
-        /// Хранит дату и время последнего изменения
-        /// </summary>
-        private DateTime _dateOfLastEdit;
-
-        public string Name
+        /// <param name="CreationTime">Дата созадния заметки</param>
+        public Note(DateTime CreationTime)
         {
-            get { return _name; }
+            if (CreationTime <= DateTime.Now)
+            {
+                _timeCreated = CreationTime;
+                _lastModification = CreationTime;
+            }
+            else
+            {
+                throw new ArgumentException("Некорректная дата!");
+            }
+        }
+
+        /// <summary>
+        /// возвращает название заметки
+        /// </summary>
+
+        public string Title
+        {
+            get
+            {
+                return _title;
+            }
             set
             {
-                // Буквенно-цифровое выражение, подчеркивания и дефисы
-                string pattern = @"^[a-zA-Z0-9_-]*$";
-
-                if (value == null)
+                if (value.Length > 50)
                 {
-                    throw new ArgumentException("Name value is instance of null type");
-                }
-
-                if (value.Length == 0)
-                {
-                    throw new ArgumentException("Name length is 0 symbols");
-                }
-                else if (value.Length != 0 && value.Length > 70)
-                {
-                    throw new ArgumentException("Name length is more than 70 symbols");
-                }
-                else if (value[0].ToString() == " ")
-                {
-                    throw new ArgumentException("Name value starts with space symbol");
-                }
-                else if (!Regex.IsMatch(value, pattern))
-                {
-                    throw new ArgumentException("Name value contains special symbols");
+                    throw new ArgumentException("Заголовок должен быть короче 50 символов");
                 }
                 else
                 {
-                    _name = value;
+                    _title = value;
+                }
+
+            }
+        }
+        /// <summary>
+        /// возвращает текст заметки
+        /// </summary>
+        public string Text
+        {
+            get
+            {
+                return _text;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    _text = value;
+                }
+                else
+                {
+                    throw new ArgumentException("Текст заметки должен быть больше 0");
                 }
             }
         }
 
-        public string Content
-        {
-            get { return _content; }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentException("Content value is instance of null type");
-                }
 
-                if (value.Length == 0)
-                {
-                    throw new ArgumentException("Content length is 0 symbols");
-                }
-                // Ограничения как у сообщения ВК
-                else if (value.Length != 0 && value.Length > 4096)
-                {
-                    throw new ArgumentException("Content length is more than 4096 symbols");
-                }
-                else if (value[0].ToString() == " ")
-                {
-                    throw new ArgumentException("Content value starts with space symbol");
-                }
-                else
-                {
-                    _content = value;
-                }
-            }
-        }
-
+        /// <summary>
+        /// возвращает категорию заметки
+        /// </summary>
         public NoteCategory Category
         {
-            get { return _category; }
-            set { _category = value; }
+            get
+            {
+                return _noteCategory;
+            }
+            set
+            {
+                if (value >= 0)
+                {
+                    _noteCategory = value;
+                }
+                else
+                {
+                    throw new ArgumentException("Некорректная категория");
+                }
+            }
         }
-
-        public DateTime DateOfCreation
+        /// <summary>
+        /// возвращает последнее изменение
+        /// </summary>
+        public DateTime LastModification
         {
-            get { return _dateOfCreation; }
-            set { _dateOfCreation = value; }
-        }
+            get
+            {
+                return _lastModification;
+            }
 
-        public DateTime DateOfLastEdit
-        {
-            get { return _dateOfLastEdit; }
-            set { _dateOfLastEdit = value; }
+            set
+            {
+                if (value <= DateTime.Now)
+                {
+                    _lastModification = value;
+                }
+                else
+                {
+                    throw new ArgumentException("Дата изменения не может быть позже текущей даты.");
+                }
+            }
         }
 
         /// <summary>
-        /// Конструктор экземпляра, который устанавливает значения полей заметки
+        /// клонирование
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="content"></param>
-        /// <param name="category"></param>
-        public Note(string name, string content, NoteCategory category)
-        {
-            Name = name;
-            Content = content;
-            Category = category;
-            DateOfCreation = DateTime.Now;
-            DateOfLastEdit = DateTime.Now;
-        }
-
-        /// <summary>
-        /// Метод для редактирования заметки
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="content"></param>
-        /// <param name="category"></param>
-        public void Edit(string name, string content, NoteCategory category)
-        {
-            // TODO добавить входной параметр в виде объекта заметкии, которую хотим отредактировать
-            // Считаю, что реализацию метода необходимо доработать
-            Name = name;
-            Content = content;
-            Category = category;
-            DateOfLastEdit = DateTime.Now;
-        }
-
-        /// <summary>
-        /// Возвращает копию экземпляра заметки
-        /// </summary>
-        /// <returns></returns>
+        /// <returns>возвращает копию данной записи</returns>
         public object Clone()
         {
-            return this.MemberwiseClone();
+            var newNote = new Note(_timeCreated);
+            newNote.Title = _title;
+            newNote.Text = _text;
+            newNote.LastModification = _lastModification;
+            newNote.Category = _noteCategory;
+            return newNote;
         }
     }
 }

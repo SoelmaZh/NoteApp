@@ -18,13 +18,13 @@ namespace NoteAppUI
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
-            //Project project = new Project();
-            //Note note = new Note(DateTime.Now);
-            //note.Title = "заметка";
-            //note.Category = NoteCategory.Other;
-            //project.NotesList.Add(note);
-            //string fileName = "file";
-            //ProjectManager.Save(project, fileName);
+            Project project = new Project();
+            Note note = new Note(DateTime.Now);
+            note.Title = "заметка";
+            note.Category = NoteCategory.Other;
+            project.NotesList.Add(note);
+            string fileName = "file";
+            ProjectManager.Save(project, fileName);
         }
     }
 }
