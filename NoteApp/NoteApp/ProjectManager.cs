@@ -1,49 +1,62 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace NoteApp
 {
     /// <summary>
-    /// Сериализация для класса Note
+    /// Класс, реализующий метод сохранения и загрузки проекта в файл
     /// </summary>
-    public class ProjectManager
+    public static class ProjectManager
     {
         /// <summary>
-        /// Запись в файл
+        /// Хранит путь до файла сохранения
         /// </summary>
-        /// <param name="listNotes">Список заметок</param>
-        /// <param name="fileName">Имя файла</param>
-        public static void Save(Project project, string fileName)
+        private static readonly string _pathToFile = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NoteApp\\NoteApp.notes";
+
+        /// <summary>
+        /// Сохраняет объект проекта в файл
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="filename"></param>
+        public static void SaveToFile(Project data, string filename)
         {
-            JsonSerializer serializer = new JsonSerializer();
-            //Открытие потока
-            string path = "C:\\Users\\Соя\\source\\repos\\NoteApp\\NoteApp\\docs\\1.txt";
-            using (StreamWriter sw = new StreamWriter(@path))
-            using (JsonWriter writer = new JsonTextWriter(sw))
-            {
-                //Вызываем сериализацию и передаём объект для сериализации
-                serializer.Serialize(writer, project.NotesList);
-            }
+            File.WriteAllText(_pathToFile, JsonConvert.SerializeObject(data));
         }
 
-        public static Project Load(string fileName)
+        /// <summary>
+        /// Загружает объект проекта из файла
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        public static Project LoadFromFile(string filename)
         {
-            Project notes = new Project();
-            //Создаём экземпляр сериализатора.
-            JsonSerializer serializer = new JsonSerializer();
-            //Открываем поток для чтения из файла с указанием пути.
-            using (StreamReader sr = new StreamReader(fileName))
-            using (JsonReader reader = new JsonTextReader(sr))
+            Project project;
+            string data;
+
+            try
             {
-                //Вызываем десериализацию 
-                var noteList = (Project)serializer.Deserialize<Project>(reader);
-                notes = noteList;
+                data = File.ReadAllText(_pathToFile);
             }
 
-            return notes;
-        }
+            catch (DirectoryNotFoundException e)
+            {
+                throw e;
+            }
 
+            catch (FileNotFoundException e)
+            {
+                throw e;
+            }
+
+            project = JsonConvert.DeserializeObject<Project>(data);
+
+            return project;
+        }
     }
 }
 
