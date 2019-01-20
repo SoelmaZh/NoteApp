@@ -67,7 +67,7 @@ namespace NoteAppUI
             DateOfLastEditTextBox.Text = DateTime.Now.ToString();
         }
         /// <summary>
-        /// Редактирует текующую заметку
+        /// Редактирует текущую заметку
         /// </summary>
         /// <param name="currentNote"></param>
         public void EditNote(Note currentNote)
@@ -96,7 +96,7 @@ namespace NoteAppUI
             ContentTextBox.Text = CurrentNote.Content;
         }
         /// <summary>
-        /// Заполняет категории заметки
+        /// Заполнение категории заметки
         /// </summary>
         public void FillCategoryItems()
         {
@@ -111,7 +111,7 @@ namespace NoteAppUI
 
         
         /// <summary>
-        /// Событие нажатия кнопки Ok
+        /// Ккнопка ОК
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -125,10 +125,10 @@ namespace NoteAppUI
             }
 
           
-            // Если редактируем
+            // Редактирование
             if (IsEdit)
             {
-                // Категория должна быть выбрана
+                // Выбираем катеогрию
                 if (CategoryComboBox.SelectedIndex != -1)
                 {
                     // Поля должны быть не пустыми
@@ -170,10 +170,10 @@ namespace NoteAppUI
                     this.DialogResult = DialogResult.OK;
                 }
             }
-            // Если создаём новую заметку
+            // Создание новой заметки
             else
             {
-                // Категория должна быть выбрана
+                // Выбираем категорию
                 if (CategoryComboBox.SelectedIndex != -1)
                 {
                     // Поля должны быть не пустыми
@@ -274,7 +274,7 @@ namespace NoteAppUI
                 this.DialogResult = DialogResult.Cancel;
             }
         }
-        #region Focus
+       
 
         /// <summary>
         /// Событие фокусировки на TitleBox
@@ -305,21 +305,6 @@ namespace NoteAppUI
         {
             ContentTextBox.BackColor = Color.White;
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        #endregion
 
         
     }

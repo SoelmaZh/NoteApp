@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NoteApp;
-using System.IO;
 
 namespace NoteAppUI
 {
@@ -39,53 +39,40 @@ namespace NoteAppUI
         public MainForm()
         {
             InitializeComponent();
-            
-            // Попытка загрузить существующий проект, если его нет - создаём новый
+
+            CurrentProject = ProjectManager.LoadFromFile();
+
             try
             {
-                CurrentProject = ProjectManager.LoadFromFile("Project");
-
+                CurrentProject.SortNotesCollection();
             }
-            // Создаём директорию хранения файла проекта, если её нет
-            catch (DirectoryNotFoundException)
+            catch (NullReferenceException)
             {
-                if (Directory.Exists(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NoteApp") == false)
-                {
-                    Directory.CreateDirectory(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NoteApp");
-                    File.Create(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NoteApp\\NoteApp.notes");
 
-                    CurrentProject = new Project("Project");
-                }
             }
-            // Создаём пустой файл хранения проекта
-             catch (FileNotFoundException)
-            {
-                if (Directory.Exists(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NoteApp\\NoteApp.notes") == false)
-                {
-                    File.Create(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NoteApp\\NoteApp.notes");
-                }
 
-                CurrentProject = new Project("Project");
-            }
-            // Подгружаем данные в ListBox
-            NotesListBox.DataSource = CurrentProject.NotesCollection;
-            NotesListBox.DisplayMember = "Name";
+            this.NotesListBox.DataSource = CurrentProject.NotesCollection;
+            this.NotesListBox.DisplayMember = "Name";
+
             // Чистим поля
             ClearFields();
         }
+
         /// <summary>
         /// Обновляет данные ListBox заметок
         /// </summary>
         private void UpdateNotesList()
         {
             // Перезагружаем проект
-            CurrentProject = ProjectManager.LoadFromFile("Project");
+            CurrentProject = ProjectManager.LoadFromFile();
+            CurrentProject.SortNotesCollection();
 
             // Обновляем данные коллекции
             NotesListBox.DataSource = null;
             NotesListBox.DataSource = CurrentProject.NotesCollection;
             NotesListBox.DisplayMember = "Name";
         }
+
         /// <summary>
         /// Чистит все информационные поля заметки
         /// </summary>
@@ -98,18 +85,14 @@ namespace NoteAppUI
             ContentTextBox.Text = "";
         }
 
-        // Всё что относится к меню
-        # region Menu
 
         /// <summary>
-        /// Событие при нажатии пункта меню AddNote
+        /// Пункт меню Add
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        
         private void MyAddNoteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
             // Можно добавить только до 200 заметок
             if (CurrentProject.NotesCollection.Count < 200)
             {
@@ -119,7 +102,7 @@ namespace NoteAppUI
                 if (addEditNote.ShowDialog() == DialogResult.OK)
                 {
                     CurrentProject.NotesCollection.Add(addEditNote.CurrentNote);
-                    ProjectManager.SaveToFile(CurrentProject, "Project");
+                    ProjectManager.SaveToFile(CurrentProject);
                     UpdateNotesList();
                 }
             }
@@ -129,8 +112,9 @@ namespace NoteAppUI
                 NotesListBox.BackColor = Color.MistyRose;
             }
         }
+
         /// <summary>
-        /// Событие при нажатии пункта меню EditNote
+        /// Кнопка редактировать
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -141,12 +125,11 @@ namespace NoteAppUI
             {
                 AddEditNote addEditNote = new AddEditNote();
                 addEditNote.EditNote(CurrentProject.NotesCollection[NoteId]);
-
-                //AddEditNoteForm addEditNoteForm = new AddEditNoteForm(CurrentProject.NotesCollection[NoteId]);
+                
                 if (addEditNote.ShowDialog() == DialogResult.OK)
                 {
                     CurrentProject.NotesCollection[NoteId] = addEditNote.CurrentNote;
-                    ProjectManager.SaveToFile(CurrentProject, "Project");
+                    ProjectManager.SaveToFile(CurrentProject);
                     UpdateNotesList();
                 }
             }
@@ -155,28 +138,30 @@ namespace NoteAppUI
                 NotesListBox.BackColor = Color.MistyRose;
             }
         }
+
         /// <summary>
-        /// Собите при нажатии пункта меню About
+        /// Кнопка О программе
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void MyAboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             About about = new About();
+
             about.ShowDialog();
         }
+
         /// <summary>
-        /// Событие при нажатии пункта меню Exit
+        /// Кнопка меню Выход
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-
         private void MyExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Для сохранения список заметок должен быть не пустым
+            // Список должен быть не пустым
             if (CurrentProject.NotesCollection.Count != 0)
             {
-                ProjectManager.SaveToFile(CurrentProject, "Project");
+                ProjectManager.SaveToFile(CurrentProject);
                 Application.Exit();
             }
             else
@@ -184,8 +169,9 @@ namespace NoteAppUI
                 Application.Exit();
             }
         }
+
         /// <summary>
-        /// Событие при нажатии пункта меню RemoveNote
+        /// Кнопка меню Удалить
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -199,7 +185,7 @@ namespace NoteAppUI
                 if (result == DialogResult.Yes)
                 {
                     CurrentProject.NotesCollection.RemoveAt(NoteId);
-                    ProjectManager.SaveToFile(CurrentProject, "Project");
+                    ProjectManager.SaveToFile(CurrentProject);
                     UpdateNotesList();
 
                     this.DialogResult = DialogResult.Cancel;
@@ -215,57 +201,51 @@ namespace NoteAppUI
                 NotesListBox.BackColor = Color.MistyRose;
             }
         }
-        #endregion
-
-        // Всё что относится к кнопкам
-        #region Buttons
 
         /// <summary>
-        /// Событие при нажатии кнопки NewNote
+        /// Кнопка Создать
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        
         private void AddNoteButton_Click(object sender, EventArgs e)
         {
             AddEditNote addEditNote = new AddEditNote();
             addEditNote.AddNote();
 
-            // Можно добавить только до 200 заметок
+            // Ограничение до 200 заметок
             if (CurrentProject.NotesCollection.Count < 200)
             {
                 if (addEditNote.ShowDialog() == DialogResult.OK)
                 {
                     CurrentProject.NotesCollection.Add(addEditNote.CurrentNote);
-                    ProjectManager.SaveToFile(CurrentProject, "Project");
+                    ProjectManager.SaveToFile(CurrentProject);
                     UpdateNotesList();
                 }
             }
             else
             {
-                // Подсвечиваем ListBox заметок
+                // Подсветка заметок
                 NotesListBox.BackColor = Color.MistyRose;
             }
         }
+
         /// <summary>
-        /// Событие при нажатии кнопки EditNote
+        /// Кнопка Edit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-
         private void EditNoteButton_Click(object sender, EventArgs e)
         {
             // Должна быть выбрана заметка
             if (NotesListBox.SelectedIndex != -1)
             {
-                //AddEditNoteForm addEditNoteForm = new AddEditNoteForm(CurrentProject.NotesCollection[NoteId]);
                 AddEditNote addEditNote = new AddEditNote();
                 addEditNote.EditNote(CurrentProject.NotesCollection[NoteId]);
 
                 if (addEditNote.ShowDialog() == DialogResult.OK)
                 {
                     CurrentProject.NotesCollection[NoteId] = addEditNote.CurrentNote;
-                    ProjectManager.SaveToFile(CurrentProject, "Project");
+                    ProjectManager.SaveToFile(CurrentProject);
                     UpdateNotesList();
                 }
             }
@@ -273,15 +253,13 @@ namespace NoteAppUI
             {
                 NotesListBox.BackColor = Color.MistyRose;
             }
-
         }
 
         /// <summary>
-        /// Событие при нажатии кнопки RemoveNote
+        /// Кнопка Remove
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-
         private void RemoveNoteButton_Click(object sender, EventArgs e)
         {
             // Должна быть выбрана заметка
@@ -293,7 +271,7 @@ namespace NoteAppUI
                 {
                     // Удаляем заметку по id
                     CurrentProject.NotesCollection.RemoveAt(NoteId);
-                    ProjectManager.SaveToFile(CurrentProject, "Project");
+                    ProjectManager.SaveToFile(CurrentProject);
                     UpdateNotesList();
 
                     this.DialogResult = DialogResult.Cancel;
@@ -301,7 +279,7 @@ namespace NoteAppUI
 
                 if (result == DialogResult.No)
                 {
-                    // Просто закрываем диалог
+                    // Закрытие диалога
                     this.DialogResult = DialogResult.Cancel;
                 }
             }
@@ -309,29 +287,25 @@ namespace NoteAppUI
             {
                 NotesListBox.BackColor = Color.MistyRose;
             }
-
         }
-        #endregion
 
         /// <summary>
-        /// Событие изменения индекса выбранной заметки
+        /// Изменение индекса выбранной заметки
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-
         private void NotesListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
             NoteId = NotesListBox.SelectedIndex;
 
-            // Возвращаем стандартный цвет
+            // Возвращаем цвет
             NotesListBox.BackColor = Color.White;
 
             if (NoteId != -1)
             {
                 NoteNameLabel.Text = CurrentProject.NotesCollection[NoteId].Name;
 
-                // Особый случай с категориями
+                // Категории
                 if (CurrentProject.NotesCollection[NoteId].Category == NoteCategory.HealthAndSport)
                 {
                     CategoryLabel.Text = "Health and Sport";
@@ -350,8 +324,9 @@ namespace NoteAppUI
                 ClearFields();
             }
         }
+
         /// <summary>
-        /// Событие перед закрытием окна
+        /// Закрытие окна
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -360,10 +335,10 @@ namespace NoteAppUI
             DialogResult result = MessageBox.Show("Do you want to exit?", "NoteApp", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (result == DialogResult.Yes)
             {
-                // Для сохранения список заметок должен быть не пустым
+                // Список не должен быть пустым
                 if (CurrentProject.NotesCollection.Count != 0)
                 {
-                    ProjectManager.SaveToFile(CurrentProject, "Project");
+                    ProjectManager.SaveToFile(CurrentProject);
                 }
             }
 
@@ -374,7 +349,7 @@ namespace NoteAppUI
         }
 
         /// <summary>
-        /// Событие фокусировки на ListBox заметок
+        /// Фокусировка на ListBox заметок
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -383,7 +358,7 @@ namespace NoteAppUI
             NotesListBox.BackColor = Color.White;
         }
 
-        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+        private void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
 
         }

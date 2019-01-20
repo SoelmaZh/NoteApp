@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 namespace NoteApp
 {
     /// <summary>
-    /// Класс, реализующий метод сохранения и загрузки проекта в файл
+    /// Класс, реализующий методы сохранения и загрузки проекта
     /// </summary>
     public static class ProjectManager
     {
@@ -22,41 +22,53 @@ namespace NoteApp
         /// Сохраняет объект проекта в файл
         /// </summary>
         /// <param name="data"></param>
-        /// <param name="filename"></param>
-        public static void SaveToFile(Project data, string filename)
+        public static void SaveToFile(Project data)
         {
-            File.WriteAllText(_pathToFile, JsonConvert.SerializeObject(data));
+            using (StreamWriter file = File.CreateText(_pathToFile))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(file, data);
+            }
         }
 
         /// <summary>
         /// Загружает объект проекта из файла
         /// </summary>
-        /// <param name="filename"></param>
         /// <returns></returns>
-        public static Project LoadFromFile(string filename)
+        public static Project LoadFromFile()
         {
-            Project project;
-            string data;
-
             try
             {
-                data = File.ReadAllText(_pathToFile);
+                using (StreamReader file = File.OpenText(_pathToFile))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    return (Project)serializer.Deserialize(file, typeof(Project));
+                }
             }
-
-            catch (DirectoryNotFoundException e)
+            catch (FileNotFoundException)
             {
-                throw e;
-            }
+                Project project = new Project();
+                ProjectManager.SaveToFile(project);
 
-            catch (FileNotFoundException e)
+                using (StreamReader file = File.OpenText(_pathToFile))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    return (Project)serializer.Deserialize(file, typeof(Project));
+                }
+            }
+            catch (DirectoryNotFoundException)
             {
-                throw e;
+                Directory.CreateDirectory(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\NoteApp");
+
+                Project project = new Project();
+                ProjectManager.SaveToFile(project);
+
+                using (StreamReader file = File.OpenText(_pathToFile))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    return (Project)serializer.Deserialize(file, typeof(Project));
+                }
             }
-
-            project = JsonConvert.DeserializeObject<Project>(data);
-
-            return project;
         }
     }
 }
-

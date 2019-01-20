@@ -17,6 +17,7 @@ namespace NoteApp
         /// Хранит имя
         /// </summary>
         private string _name;
+        public Note _Note;
 
         /// <summary>
         /// Хранит содержание или текст
@@ -44,7 +45,7 @@ namespace NoteApp
             set
             {
                 // Буквенно-цифровое выражение, подчеркивания и дефисы
-                string pattern = @"^[a-zA-Z0-9_-]*$";
+                //string pattern = @"^[a-zA-Z0-9_-]*$";
 
                 if (value == null)
                 {
@@ -63,10 +64,10 @@ namespace NoteApp
                 {
                     throw new ArgumentException("Name value starts with space symbol");
                 }
-                else if (!Regex.IsMatch(value, pattern))
-                {
-                    throw new ArgumentException("Name value contains special symbols");
-                }
+                //else if (!Regex.IsMatch(value, pattern))
+                //{
+                //    throw new ArgumentException("Name value contains special symbols");
+                //}
                 else
                 {
                     _name = value;
@@ -87,15 +88,6 @@ namespace NoteApp
                 if (value.Length == 0)
                 {
                     throw new ArgumentException("Content length is 0 symbols");
-                }
-                // Ограничения как у сообщения ВК
-                else if (value.Length != 0 && value.Length > 4096)
-                {
-                    throw new ArgumentException("Content length is more than 4096 symbols");
-                }
-                else if (value[0].ToString() == " ")
-                {
-                    throw new ArgumentException("Content value starts with space symbol");
                 }
                 else
                 {
@@ -145,8 +137,6 @@ namespace NoteApp
         /// <param name="category"></param>
         public void Edit(string name, string content, NoteCategory category)
         {
-            // TODO добавить входной параметр в виде объекта заметкии, которую хотим отредактировать
-            // Считаю, что реализацию метода необходимо доработать
             Name = name;
             Content = content;
             Category = category;
